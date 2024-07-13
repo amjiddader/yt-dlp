@@ -197,15 +197,23 @@ class CurlFD(ExternalFD):
     AVAILABLE_OPT = '-V'
     _CAPTURE_STDERR = False  # curl writes the progress to stderr
 
+
+
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '--location', '-o', tmpfilename, '--compressed']
+        
+        # Add the --cookies option with the path to the cookie file
+        cookie_file_path = '/app/cookie.txt'
+        if os.path.exists(cookie_file_path):
+            cmd += ['--cookies', cookie_file_path]
+    
         cookie_header = self.ydl.cookiejar.get_cookie_header(info_dict['url'])
         if cookie_header:
             cmd += ['--cookie', cookie_header]
         if info_dict.get('http_headers') is not None:
             for key, val in info_dict['http_headers'].items():
                 cmd += ['--header', f'{key}: {val}']
-
+    
         cmd += self._bool_option('--continue-at', 'continuedl', '-', '0')
         cmd += self._valueless_option('--silent', 'noprogress')
         cmd += self._valueless_option('--verbose', 'verbose')
@@ -222,6 +230,7 @@ class CurlFD(ExternalFD):
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
+
 
 
 class AxelFD(ExternalFD):
